@@ -1,0 +1,6 @@
+Event
+| extend EventData=parse_xml(EventData)
+| project TimeGenerated, SourceSystem, Source, EventLog, EventData = EventData.DataItem.EventData.Data
+| where Source contains "Time-Service"
+| mv-apply EventData on ( project entry=bag_pack(tostring(EventData["@Name"]), tostring(EventData["#text"])) | summarize make_bag(entry))
+| evaluate bag_unpack(bag_entry,"data")
