@@ -1,0 +1,11 @@
+resources
+| where type in ('microsoft.compute/virtualmachines','microsoft.hybridcompute/machines')
+| extend id = tolower(id)
+| join kind = leftouter(
+        insightsresources
+        | extend id = tolower(id)
+        | parse id with resourceId "/providers/microsoft.insights/" *
+        | extend resourceId = tolower(resourceId),
+                dcrId = tolower(properties.dataCollectionRuleId)
+        | summarize AssignedDCRs = make_set(dcrId) by resourceId
+        ) on $left.id == $right.resourceId
